@@ -7,7 +7,7 @@
   ╚════██║██╔══██║██║██╔═██╗ ██╔══██║  ╚██╔╝  ██╔══██║   ██║   ██╔══██║██║
   ███████║██║  ██║██║██║  ██╗██║  ██║   ██║   ██║  ██║   ██║   ██║  ██║██║
   ╚══════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝
-                     AI-Powered Civic Complaint Resolution System for Karachi
+          AI-Powered Civic Complaint Resolution System for Karachi
 ```
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -31,8 +31,8 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 
 | Service | URL |
 |---------|-----|
-| Frontend (Cloud Run) | Coming soon |
-| Backend API (Cloud Run) | Coming soon |
+| Frontend (Cloud Run) | [https://shikayatai-web-941068767562.asia-south1.run.app](https://shikayatai-web-941068767562.asia-south1.run.app) |
+| Backend API (Cloud Run) | [https://shikayatai-api-941068767562.asia-south1.run.app](https://shikayatai-api-941068767562.asia-south1.run.app) |
 
 ---
 
