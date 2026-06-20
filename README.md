@@ -33,6 +33,7 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 |---------|-----|
 | Frontend (Cloud Run) | [https://shikayatai-web-941068767562.asia-south1.run.app](https://shikayatai-web-941068767562.asia-south1.run.app) |
 | Backend API (Cloud Run) | [https://shikayatai-api-941068767562.asia-south1.run.app](https://shikayatai-api-941068767562.asia-south1.run.app) |
+| Backend Health Check | [https://shikayatai-api-941068767562.asia-south1.run.app/api/health](https://shikayatai-api-941068767562.asia-south1.run.app/api/health) |
 
 ---
 
