@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1B4332; /* Deep Green */
+  --color-primary-dark: #123023;
+  --color-accent: #F59E0B; /* Amber */
+  --color-accent-hover: #D97706;
+  --color-bg: #F8FAFCD;
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-urdu: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif;
+}
+
+@layer base {
+  body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: var(--font-sans);
+  }
+}
+
+.font-urdu {
+  font-family: var(--font-urdu);
+  line-height: 2;
+}
+
+.shikayat-card {
+  @apply bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden;
+}
+
+.shikayat-btn {
+  @apply px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center;
+}
+
+.shikayat-btn-primary {
+  @apply bg-primary text-white hover:bg-primary-dark;
+}
+
+.shikayat-btn-accent {
+  @apply bg-accent text-white hover:bg-accent-hover;
+}
