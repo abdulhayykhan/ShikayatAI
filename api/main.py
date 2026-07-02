@@ -60,7 +60,7 @@ app = FastAPI(title="ShikayatAI API", lifespan=lifespan)
 # Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For dev only
+    allow_origins=["http://localhost:3000", "https://shikayatai-web-941068767562.asia-south1.run.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
