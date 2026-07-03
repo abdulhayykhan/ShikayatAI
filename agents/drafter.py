@@ -146,7 +146,8 @@ Always output ONLY valid JSON matching this exact schema (do NOT wrap in markdow
 # 3. Agent Definition & Factory
 # ─────────────────────────────────────────────
 
-_MODEL = "gemini-2.5-flash-lite"
+from google.adk.models.lite_llm import LiteLlm
+_MODEL = LiteLlm(model="groq/llama-3.3-70b-versatile")
 
 _AGENT_DESCRIPTION = (
     "Drafts formal civic complaint letters in English and Urdu, generating "

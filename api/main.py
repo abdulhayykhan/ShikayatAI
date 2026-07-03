@@ -107,7 +107,7 @@ async def health_check():
     """System health check and model info."""
     return {
         "status": "ok",
-        "model": "gemini-2.5-flash-lite",
+        "model": "groq/llama-3.3-70b-versatile",
         "agents": ["Classifier", "Researcher", "Drafter", "Memory"]
     }
 

@@ -1,5 +1,6 @@
-google-adk>=1.0.0
+google-adk[extensions]>=1.0.0
 google-generativeai
+groq>=0.9.0
 fastapi
 uvicorn[standard]
 python-dotenv

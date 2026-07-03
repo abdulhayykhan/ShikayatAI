@@ -26,7 +26,6 @@ from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
-from google.genai import types as genai_types
 from pydantic import BaseModel, Field
 
 # Try to import Google Search tool. If ADK has a specific wrapper, we use it,
@@ -126,14 +125,15 @@ Always output ONLY valid JSON matching this exact schema (do NOT wrap in markdow
 # 3. Agent Definition & Factory
 # ─────────────────────────────────────────────
 
-_MODEL = "gemini-2.5-flash-lite"  # Using flash-lite for higher free-tier quota limits
+from google.adk.models.lite_llm import LiteLlm
+_MODEL = LiteLlm(model="groq/llama-3.3-70b-versatile")
 
 _AGENT_DESCRIPTION = (
     "Researches civic authorities in Karachi to find contact info, helplines, "
     "and online complaint portals."
 )
 
-from google.adk.tools import google_search
+
 
 def _make_agent() -> LlmAgent:
     """Return a fresh LlmAgent instance."""
@@ -142,7 +142,6 @@ def _make_agent() -> LlmAgent:
         model=_MODEL,
         description=_AGENT_DESCRIPTION,
         instruction=SYSTEM_INSTRUCTION,
-        tools=[google_search],
     )
 
 # ─────────────────────────────────────────────

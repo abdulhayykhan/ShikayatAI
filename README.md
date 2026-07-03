@@ -116,7 +116,9 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 | FastAPI | REST API Framework |
 | Uvicorn | ASGI Server |
 | Google ADK | Multi-Agent Orchestration |
-| Gemini API | LLM Engine (`gemini-2.5-flash`) |
+| Groq API | LLM Engine (`llama-3.3-70b-versatile`) via LiteLLM |
+
+**Note on AI Provider:** We initially built this system using Google's Gemini API (`gemini-2.5-flash-lite`), but the free-tier limit of 20 requests per day caused immediate quota exhaustion. To ensure a seamless user experience, we have switched to the **Groq API** (using `llama-3.3-70b-versatile` via ADK's `LiteLlm` wrapper), which provides extremely fast inference and significantly higher free limits!
 
 ### Frontend
 

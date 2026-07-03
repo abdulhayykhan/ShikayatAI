@@ -196,7 +196,8 @@ code fences. The schema is enforced — every field is required.
 # 3.  Agent Definition
 # ─────────────────────────────────────────────
 
-_MODEL = "gemini-2.5-flash-lite"
+from google.adk.models.lite_llm import LiteLlm
+_MODEL = LiteLlm(model="groq/llama-3.3-70b-versatile")
 
 _AGENT_DESCRIPTION = (
     "Classifies Karachi civic complaints (English / Urdu / Romanised Urdu) "

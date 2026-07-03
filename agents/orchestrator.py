@@ -77,12 +77,13 @@ def run_safety_precheck(complaint_text: str) -> dict:
     }}
     """
     
-    response = client.models.generate_content(
-        model="gemini-2.5-flash-lite",
-        contents=prompt
+    from litellm import completion
+    response = completion(
+        model="groq/llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}]
     )
     
-    raw = response.text.strip()
+    raw = response.choices[0].message.content.strip()
     if raw.startswith("```json"):
         raw = raw[7:-3]
     elif raw.startswith("```"):

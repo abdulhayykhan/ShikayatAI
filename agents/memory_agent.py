@@ -14,6 +14,8 @@ import json
 from typing import Literal
 
 from google.adk.agents import LlmAgent
+from google.adk.sessions import InMemorySessionService
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools import tool_context
 
 # Simulated In-Memory Service since ADK's InMemoryMemoryService is missing/unexported
@@ -109,7 +111,7 @@ Output a brief text acknowledging what you did.
 def make_memory_agent() -> LlmAgent:
     return LlmAgent(
         name="MemoryAgent",
-        model="gemini-2.5-flash-lite",
+        model=LiteLlm(model="groq/llama-3.3-70b-versatile"),
         description="Manages user complaint history and detects duplicates.",
         instruction=SYSTEM_INSTRUCTION,
         tools=[
