@@ -16,7 +16,7 @@ from typing import Literal
 from google.adk.agents import LlmAgent
 from google.adk.sessions import InMemorySessionService
 from google.adk.models.lite_llm import LiteLlm
-from google.adk.tools import tool_context
+from google.adk.tools import ToolContext
 
 # Simulated In-Memory Service since ADK's InMemoryMemoryService is missing/unexported
 class InMemoryMemoryService:
@@ -52,16 +52,15 @@ memory_service.add_complaint("test-user", {
 })
 
 
-def search_past_complaints() -> str:
+def search_past_complaints(tool_context: ToolContext) -> str:
     """Retrieve all past complaints for the current user."""
-    # Assuming user_id is passed in state or we hardcode 'test-user' for this demo
-    user_id = "test-user"
+    user_id = tool_context.state.get("user_id", "test-user")
     records = memory_service.get_complaints(user_id)
     if not records:
         return "No past complaints found."
     return json.dumps(records, indent=2)
 
-def add_new_complaint(reference_number: str, complaint_type: str, authority: str, date: str) -> str:
+def add_new_complaint(reference_number: str, complaint_type: str, authority: str, date: str, tool_context: ToolContext) -> str:
     """Save a new complaint record to memory."""
     user_id = tool_context.state.get("user_id", "test-user")
     record = {
@@ -74,7 +73,7 @@ def add_new_complaint(reference_number: str, complaint_type: str, authority: str
     memory_service.add_complaint(user_id, record)
     return "Complaint added to memory."
 
-def mark_complaint_resolved(reference_number: str) -> str:
+def mark_complaint_resolved(reference_number: str, tool_context: ToolContext) -> str:
     """Mark an existing complaint as resolved."""
     user_id = tool_context.state.get("user_id", "test-user")
     success = memory_service.update_status(user_id, reference_number, "resolved")
