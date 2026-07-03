@@ -126,7 +126,7 @@ Always output ONLY valid JSON matching this exact schema (do NOT wrap in markdow
 # 3. Agent Definition & Factory
 # ─────────────────────────────────────────────
 
-_MODEL = "gemini-2.5-flash"  # Using 2.5-flash to bypass quota issues, though 2.0-flash is also acceptable
+_MODEL = "gemini-2.5-flash-lite"  # Using flash-lite for higher free-tier quota limits
 
 _AGENT_DESCRIPTION = (
     "Researches civic authorities in Karachi to find contact info, helplines, "

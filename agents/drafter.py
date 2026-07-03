@@ -146,7 +146,7 @@ Always output ONLY valid JSON matching this exact schema (do NOT wrap in markdow
 # 3. Agent Definition & Factory
 # ─────────────────────────────────────────────
 
-_MODEL = "gemini-2.5-flash" 
+_MODEL = "gemini-2.5-flash-lite"
 
 _AGENT_DESCRIPTION = (
     "Drafts formal civic complaint letters in English and Urdu, generating "

@@ -196,7 +196,7 @@ code fences. The schema is enforced — every field is required.
 # 3.  Agent Definition
 # ─────────────────────────────────────────────
 
-_MODEL = "gemini-2.5-flash"
+_MODEL = "gemini-2.5-flash-lite"
 
 _AGENT_DESCRIPTION = (
     "Classifies Karachi civic complaints (English / Urdu / Romanised Urdu) "

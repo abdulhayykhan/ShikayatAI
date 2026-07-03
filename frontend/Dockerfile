@@ -17,7 +17,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 
-
+ENV NEXT_PUBLIC_API_URL=https://shikayatai-api-941068767562.asia-south1.run.app
 RUN npm run build
 
 # Production image, copy all the files and run next

@@ -107,7 +107,7 @@ async def health_check():
     """System health check and model info."""
     return {
         "status": "ok",
-        "model": "gemini-2.5-flash",
+        "model": "gemini-2.5-flash-lite",
         "agents": ["Classifier", "Researcher", "Drafter", "Memory"]
     }
 
@@ -148,7 +148,7 @@ async def submit_complaint(req: ComplaintRequest):
         session_id=session_id,
     )
     
-    session = await session_service.get_session("ShikayatAI", req.user_id, session_id)
+    session = await session_service.get_session(app_name="ShikayatAI", user_id=req.user_id, session_id=session_id)
     if session:
         session.state["user_complaint"] = input_text
         session.state["user_id"] = req.user_id
@@ -178,7 +178,7 @@ async def submit_complaint(req: ComplaintRequest):
                             final_output += part.text
                             
         # Look for MemoryAgent intercept
-        refreshed_session = await session_service.get_session("ShikayatAI", req.user_id, session_id)
+        refreshed_session = await session_service.get_session(app_name="ShikayatAI", user_id=req.user_id, session_id=session_id)
         if refreshed_session and "memory_output" in refreshed_session.state:
             mem_out = refreshed_session.state["memory_output"]
             if mem_out.get("action") == "warn":

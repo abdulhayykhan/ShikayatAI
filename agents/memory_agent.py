@@ -53,7 +53,7 @@ memory_service.add_complaint("test-user", {
 def search_past_complaints() -> str:
     """Retrieve all past complaints for the current user."""
     # Assuming user_id is passed in state or we hardcode 'test-user' for this demo
-    user_id = tool_context.state.get("user_id", "test-user")
+    user_id = "test-user"
     records = memory_service.get_complaints(user_id)
     if not records:
         return "No past complaints found."
@@ -82,11 +82,11 @@ def set_memory_agent_output(output_action: Literal["proceed", "warn", "summarize
     """
     Saves the memory agent's final decision to the session state so the orchestrator knows what to do.
     """
-    tool_context.state["memory_output"] = {
+    import json
+    return json.dumps({
         "action": output_action,
         "message": message
-    }
-    return "Output saved."
+    })
 
 SYSTEM_INSTRUCTION = """\
 You are the MemoryAgent for ShikayatAI, handling complaints for Karachi residents.
@@ -109,7 +109,7 @@ Output a brief text acknowledging what you did.
 def make_memory_agent() -> LlmAgent:
     return LlmAgent(
         name="MemoryAgent",
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         description="Manages user complaint history and detects duplicates.",
         instruction=SYSTEM_INSTRUCTION,
         tools=[

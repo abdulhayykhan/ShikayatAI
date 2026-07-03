@@ -30,8 +30,17 @@ from agents.drafter import _make_agent as make_drafter_agent
 
 load_dotenv()
 
-# We will use the same api key pool concept for safety check
-_API_KEY = os.getenv("GOOGLE_API_KEY")
+def _get_api_key() -> str:
+    """Get first available API key from the rotation pool."""
+    for var in [
+        "GOOGLE_API_KEY",
+        "GOOGLE_API_KEY_BACKUP",
+        *[f"GOOGLE_API_KEY_{i}" for i in range(2, 10)],
+    ]:
+        val = os.getenv(var)
+        if val:
+            return val
+    raise ValueError("No API key was provided. Set GOOGLE_API_KEY in environment.")
 
 # ─────────────────────────────────────────────
 # 1. Safety Pre-Check
@@ -48,7 +57,7 @@ def run_safety_precheck(complaint_text: str) -> dict:
             "reason": "Input is too short to be a valid complaint. Please provide more details.\n(یہ شکایت بہت مختصر ہے۔ براہ کرم مزید تفصیلات فراہم کریں۔)"
         }
 
-    client = Client(api_key=_API_KEY)
+    client = Client(api_key=_get_api_key())
     
     prompt = f"""
     Analyze the following input from a resident of Karachi:
@@ -69,7 +78,7 @@ def run_safety_precheck(complaint_text: str) -> dict:
     """
     
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=prompt
     )
     
@@ -99,7 +108,7 @@ def make_orchestrator() -> SequentialAgent:
     return SequentialAgent(
         name="ShikayatAI_Orchestrator",
         description="Routes Karachi civic complaints to correct authority and generates formal complaint letters in Urdu and English",
-        agents=[
+        sub_agents=[
             make_memory_agent(),
             make_classifier_agent(),
             make_researcher_agent(),
