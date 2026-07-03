@@ -206,19 +206,19 @@ async def submit_complaint(req: ComplaintRequest):
 
     # Parse final JSON output from Drafter
     try:
-        raw_json = final_output.strip()
-        if raw_json.startswith("```json"):
-            raw_json = raw_json[7:]
-        if raw_json.startswith("```"):
-            raw_json = raw_json[3:]
-        if raw_json.endswith("```"):
-            raw_json = raw_json[:-3]
+        text = final_output.strip()
+        first_brace = text.find("{")
+        last_brace = text.rfind("}")
+        if first_brace == -1 or last_brace == -1 or last_brace < first_brace:
+            logger.error(f"No JSON object found in Drafter output. Raw output: {repr(final_output)}")
+            raise HTTPException(status_code=500, detail="Failed to parse model output.")
         
-        parsed = json.loads(raw_json.strip())
+        json_str = text[first_brace:last_brace + 1]
+        parsed = json.loads(json_str)
         logger.info(f"[LOG] Complaint successfully routed and drafted for user {req.user_id}")
         return parsed
-    except json.JSONDecodeError:
-        logger.error("Failed to parse Drafter JSON output.")
+    except Exception as e:
+        logger.error(f"Failed to parse Drafter JSON output. Raw output: {repr(final_output)}. Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse model output.")
 
 

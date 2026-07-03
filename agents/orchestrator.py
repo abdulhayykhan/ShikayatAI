@@ -84,18 +84,17 @@ def run_safety_precheck(complaint_text: str) -> dict:
     )
     
     raw = response.choices[0].message.content.strip()
-    if raw.startswith("```json"):
-        raw = raw[7:-3]
-    elif raw.startswith("```"):
-        raw = raw[3:-3]
-        
     try:
-        data = json.loads(raw.strip())
+        first_brace = raw.find("{")
+        last_brace = raw.rfind("}")
+        if first_brace == -1 or last_brace == -1 or last_brace < first_brace:
+            raise ValueError("No JSON object found")
+        data = json.loads(raw[first_brace:last_brace + 1].strip())
         if not data.get("safe", True):
             reason = f"{data.get('rejection_reason_english')}\n\n{data.get('rejection_reason_urdu')}"
             return {"safe": False, "reason": reason}
         return {"safe": True}
-    except Exception:
+    except Exception as e:
         # If parsing fails, default to safe to not block the user incorrectly
         return {"safe": True}
 
