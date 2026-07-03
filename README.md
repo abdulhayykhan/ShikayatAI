@@ -14,14 +14,14 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Groq](https://img.shields.io/badge/Groq-Llama_3.3_70B-f55036?style=for-the-badge&logo=groq&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
 ---
 
 ## 🏙️ What is ShikayatAI?
 
-ShikayatAI is a **bilingual (Urdu & English) civic complaint resolution platform** engineered specifically for the citizens of Karachi, Pakistan. It leverages a multi-agent AI pipeline built on Google's ADK and the Gemini 2.5 Flash model to instantly categorize, route, and draft formal civic complaints based on natural language input.
+ShikayatAI is a **bilingual (Urdu & English) civic complaint resolution platform** engineered specifically for the citizens of Karachi, Pakistan. It leverages a multi-agent AI pipeline built on Google's ADK and the Groq Llama 3.3 70B model to instantly categorize, route, and draft formal civic complaints based on natural language input.
 
 Instead of citizens navigating complex bureaucracy or figuring out which department handles their specific issue (e.g., KWSB for water, KE for electricity, SSMB for garbage), ShikayatAI acts as a single intelligent portal. A user simply types their problem in plain Urdu, Roman Urdu, or English. The AI pipeline runs a safety pre-check, dynamically researches live contact info for the correct authority via Google Search, and drafts formal, reference-tracked complaint letters in both languages, ready for submission.
 
@@ -88,7 +88,7 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 │   ┌─────────────────────────────▼──────────────────────────────────┐   │
 │   │ ADK Orchestrator (agents/orchestrator.py)                      │   │
 │   │                                                                │   │
-│   │  1. Safety Pre-check (Gemini 2.5 Flash)                        │   │
+│   │  1. Safety Pre-check (Groq Llama 3.3)                          │   │
 │   │     If safe, triggers Sequential Pipeline:                     │   │
 │   │                                                                │   │
 │   │  ┌──────────┐   ┌────────────┐   ┌────────────┐   ┌──────────┐ │   │
@@ -189,7 +189,7 @@ ShikayatAI/
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- A Google Gemini API Key
+- A Groq API Key
 
 ### Step 1 — Backend Setup
 
@@ -203,7 +203,7 @@ python -m venv .venv
 pip install -r requirements.txt
 
 # Create environment file
-echo GOOGLE_API_KEY=your_gemini_key_here > .env
+echo GROQ_API_KEY=your_groq_key_here > .env
 ```
 
 ### Step 2 — Start the Backend API
@@ -253,7 +253,7 @@ Main inference endpoint. Runs safety check and orchestrator pipeline.
 ```json
 {
   "status": "ok",
-  "model": "gemini-2.5-flash",
+  "model": "groq/llama-3.3-70b-versatile",
   "agents": ["Classifier", "Researcher", "Drafter", "Memory"]
 }
 ```
@@ -265,11 +265,11 @@ Main inference endpoint. Runs safety check and orchestrator pipeline.
 We deploy both the Python Backend and the Next.js Frontend to Google Cloud Run. For automated CI/CD, use the provided `cloudbuild.yaml`.
 
 ### 1. Set up Secrets
-Add your Gemini API Key to Google Cloud Secret Manager:
+Add your Groq API Key to Google Cloud Secret Manager:
 ```bash
-printf "YOUR_GEMINI_API_KEY" | gcloud secrets create shikayatai-google-api-key --data-file=-
+printf "YOUR_GROQ_API_KEY" | gcloud secrets create shikayatai-groq-api-key --data-file=-
 
-gcloud secrets add-iam-policy-binding shikayatai-google-api-key \
+gcloud secrets add-iam-policy-binding shikayatai-groq-api-key \
   --member="serviceAccount:COMPUTE_ENGINE_DEFAULT_SERVICE_ACCOUNT" \
   --role="roles/secretmanager.secretAccessor"
 ```
@@ -281,7 +281,7 @@ gcloud run deploy shikayatai-api \
   --region asia-south1 \
   --platform managed \
   --allow-unauthenticated \
-  --update-secrets=GOOGLE_API_KEY=shikayatai-google-api-key:latest
+  --update-secrets=GROQ_API_KEY=shikayatai-groq-api-key:latest
 ```
 *(Copy the resulting URL for the next step)*
 
