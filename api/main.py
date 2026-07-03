@@ -172,14 +172,18 @@ async def submit_complaint(req: ComplaintRequest):
             new_message=message
         ):
             if event.is_final_response():
-                # Only accumulate text from the Drafter agent
                 node_name = event.node_name or ""
                 author = event.author or ""
-                if node_name == "Drafter" or author == "Drafter":
-                    if event.content and event.content.parts:
-                        for part in event.content.parts:
-                            if getattr(part, "text", None):
-                                final_output += part.text
+                event_text = ""
+                if event.content and event.content.parts:
+                    for part in event.content.parts:
+                        if getattr(part, "text", None):
+                            event_text += part.text
+                logger.info(f"Final response event: node_name='{node_name}', author='{author}', text_preview='{event_text[:60]}'")
+                
+                # Only accumulate text from the Drafter agent
+                if node_name == "Drafter" or author == "Drafter" or "Drafter" in node_name or "Drafter" in author:
+                    final_output += event_text
                             
         # Look for MemoryAgent intercept
         refreshed_session = await session_service.get_session(app_name="ShikayatAI", user_id=req.user_id, session_id=session_id)
