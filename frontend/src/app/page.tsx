@@ -2,32 +2,26 @@
 
 import { useState, useEffect } from "react";
 
-// Types
-interface ComplaintDrafts {
-  english_draft: string;
-  urdu_draft: string;
-}
-
+// ─────────────────────────────────────────────────────────────────
+// Types — aligned with DrafterResult from agents/drafter.py
+// ─────────────────────────────────────────────────────────────────
 interface ShikayatResult {
-  complaint_type: string;
-  responsible_body_full: string;
-  responsible_body_short: string;
-  urgency: string;
-  summary_english: string;
-  summary_urdu: string;
-  is_civic_issue: boolean;
-  needs_location: boolean;
-  needs_clarification: boolean;
-  reference_number?: string;
-  drafts?: ComplaintDrafts;
+  reference_number: string;
+  english_letter: string;
+  urdu_letter: string;
+  submission_method: "online" | "physical" | "both" | "phone";
+  submission_url: string | null;
+  helpline_to_call: string | null;
+  next_steps_english: string[];
+  next_steps_urdu: string[];
 }
 
 interface PastComplaint {
   id: string;
   reference_number: string;
   date: string;
-  authority: string;
-  summary: string;
+  submission_method: string;
+  helpline: string | null;
 }
 
 export default function Home() {
@@ -49,26 +43,36 @@ export default function Home() {
     }
     setUserId(storedUserId);
 
+    // Fix 6: Guard against corrupted localStorage JSON
     const history = localStorage.getItem("shikayat_history");
     if (history) {
-      setPastComplaints(JSON.parse(history));
+      try {
+        setPastComplaints(JSON.parse(history));
+      } catch {
+        // Corrupted data — clear and start fresh
+        localStorage.removeItem("shikayat_history");
+      }
     }
   }, []);
 
   const saveToHistory = (newResult: ShikayatResult) => {
     if (!newResult.reference_number) return;
-    
+
     const newEntry: PastComplaint = {
       id: Date.now().toString(),
       reference_number: newResult.reference_number,
       date: new Date().toLocaleDateString(),
-      authority: newResult.responsible_body_short,
-      summary: newResult.summary_english
+      submission_method: newResult.submission_method,
+      helpline: newResult.helpline_to_call,
     };
-    
+
     const updated = [newEntry, ...pastComplaints];
     setPastComplaints(updated);
-    localStorage.setItem("shikayat_history", JSON.stringify(updated));
+    try {
+      localStorage.setItem("shikayat_history", JSON.stringify(updated));
+    } catch {
+      // localStorage write failed (e.g. private mode quota) — silently ignore
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,10 +99,10 @@ export default function Home() {
           urdu: data.error_urdu || "ایک خامی پیش آ گئی ہے۔"
         });
       } else {
-        setResult(data);
-        saveToHistory(data);
+        setResult(data as ShikayatResult);
+        saveToHistory(data as ShikayatResult);
       }
-    } catch (err) {
+    } catch {
       setError({
         english: "Failed to connect to the server.",
         urdu: "سرور سے رابطہ کرنے میں ناکامی۔"
@@ -108,18 +112,19 @@ export default function Home() {
     }
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency?.toLowerCase()) {
-      case "high": return "bg-red-100 text-red-800 border-red-200";
-      case "medium": return "bg-orange-100 text-orange-800 border-orange-200";
-      case "low": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+  const getMethodBadge = (method: string) => {
+    switch (method) {
+      case "online": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "phone": return "bg-green-100 text-green-800 border-green-200";
+      case "physical": return "bg-orange-100 text-orange-800 border-orange-200";
+      case "both": return "bg-purple-100 text-purple-800 border-purple-200";
       default: return "bg-slate-100 text-slate-800 border-slate-200";
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center pb-20">
-      
+
       {/* Hero Section */}
       <header className="w-full bg-[#1B4332] text-white py-12 px-4 shadow-lg mb-8 text-center border-b-4 border-[#F59E0B]">
         <h1 className="text-5xl font-bold font-urdu mb-4 drop-shadow-md">شکایت درج کریں</h1>
@@ -129,17 +134,17 @@ export default function Home() {
       </header>
 
       <main className="w-full max-w-6xl px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Left Column: Form & History */}
         <div className="lg:col-span-1 space-y-8">
-          
+
           {/* Complaint Form */}
           <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
             <h2 className="text-xl font-bold text-[#1B4332] mb-6 border-b pb-2">Submit Complaint</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Your Issue</label>
-                <textarea 
+                <textarea
                   className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] outline-none transition"
                   rows={5}
                   placeholder="e.g. Teen din se pani nahi aa raha... / Water shortage for 3 days..."
@@ -150,10 +155,10 @@ export default function Home() {
                   minLength={5}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Location (Optional)</label>
-                <input 
+                <input
                   type="text"
                   className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] outline-none transition"
                   placeholder="e.g. PECHS Block 2"
@@ -163,8 +168,8 @@ export default function Home() {
                 />
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isLoading || complaint.length < 5}
                 className="w-full bg-[#1B4332] hover:bg-[#123023] text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 flex justify-center items-center"
               >
@@ -194,10 +199,12 @@ export default function Home() {
                       <span className="font-mono text-xs font-bold text-[#1B4332]">{pc.reference_number}</span>
                       <span className="text-xs text-slate-500">{pc.date}</span>
                     </div>
-                    <span className="inline-block px-2 py-0.5 bg-slate-200 text-slate-700 text-xs rounded-full font-bold mb-2">
-                      {pc.authority}
+                    <span className="inline-block px-2 py-0.5 bg-slate-200 text-slate-700 text-xs rounded-full font-bold mb-1">
+                      {pc.submission_method}
                     </span>
-                    <p className="text-sm text-slate-600 line-clamp-2">{pc.summary}</p>
+                    {pc.helpline && (
+                      <p className="text-xs text-slate-500">Helpline: {pc.helpline}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -225,52 +232,65 @@ export default function Home() {
 
           {result && (
             <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              
+
               {/* Header Info */}
               <div className="p-6 border-b border-slate-100 bg-slate-50/50">
                 <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-[#1B4332]">{result.responsible_body_full}</h2>
-                    <p className="text-slate-500 font-mono">{result.reference_number || "NO-REF"}</p>
+                    <h2 className="text-2xl font-bold text-[#1B4332]">Complaint Letter Ready</h2>
+                    <p className="text-slate-500 font-mono text-sm">{result.reference_number}</p>
                   </div>
-                  <div className={`px-4 py-1.5 rounded-full border font-bold text-sm uppercase tracking-wider ${getUrgencyColor(result.urgency)}`}>
-                    {result.urgency} Priority
+                  <div className={`px-4 py-1.5 rounded-full border font-bold text-sm uppercase tracking-wider ${getMethodBadge(result.submission_method)}`}>
+                    Submit: {result.submission_method}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <a href={`tel:02199201111`} className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-lg hover:border-[#1B4332] transition-colors group">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide">Helpline</p>
-                      <p className="font-bold text-[#1B4332] text-lg">Tap to Call</p>
-                    </div>
-                  </a>
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  {result.helpline_to_call && (
+                    <a
+                      href={`tel:${result.helpline_to_call}`}
+                      className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-lg hover:border-[#1B4332] transition-colors group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">Helpline</p>
+                        <p className="font-bold text-[#1B4332] text-lg">{result.helpline_to_call}</p>
+                      </div>
+                    </a>
+                  )}
 
-                  <a href="#" target="_blank" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-lg hover:border-[#F59E0B] transition-colors group">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 group-hover:bg-[#F59E0B] group-hover:text-white transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-500 uppercase tracking-wide">Official Portal</p>
-                      <p className="font-bold text-[#1B4332] text-lg">Visit Website</p>
-                    </div>
-                  </a>
+                  {result.submission_url && (
+                    <a
+                      href={result.submission_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-lg hover:border-[#F59E0B] transition-colors group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 group-hover:bg-[#F59E0B] group-hover:text-white transition-colors">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500 uppercase tracking-wide">Official Portal</p>
+                        <p className="font-bold text-[#1B4332] text-lg">Visit Website</p>
+                      </div>
+                    </a>
+                  )}
                 </div>
               </div>
 
               {/* Drafts Section */}
               <div className="p-6">
                 <div className="flex border-b border-slate-200 mb-6">
-                  <button 
+                  <button
                     onClick={() => setActiveTab("urdu")}
                     className={`pb-3 px-6 text-lg font-urdu border-b-2 transition-colors ${activeTab === "urdu" ? "border-[#1B4332] text-[#1B4332] font-bold" : "border-transparent text-slate-500 hover:text-slate-700"}`}
                   >
                     اردو ڈرافٹ
                   </button>
-                  <button 
+                  <button
                     onClick={() => setActiveTab("english")}
                     className={`pb-3 px-6 font-medium border-b-2 transition-colors ${activeTab === "english" ? "border-[#1B4332] text-[#1B4332] font-bold" : "border-transparent text-slate-500 hover:text-slate-700"}`}
                   >
@@ -279,9 +299,9 @@ export default function Home() {
                 </div>
 
                 <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 relative">
-                  <button 
+                  <button
                     onClick={() => {
-                      const text = activeTab === "english" ? result.drafts?.english_draft : result.drafts?.urdu_draft;
+                      const text = activeTab === "english" ? result.english_letter : result.urdu_letter;
                       navigator.clipboard.writeText(text || "");
                     }}
                     className="absolute top-4 right-4 p-2 text-slate-400 hover:text-[#1B4332] hover:bg-slate-200 rounded transition-colors"
@@ -289,29 +309,60 @@ export default function Home() {
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                   </button>
-                  
+
                   {activeTab === "english" ? (
                     <div className="whitespace-pre-wrap text-slate-800 font-serif leading-relaxed">
-                      {result.drafts?.english_draft || "Draft not available."}
+                      {result.english_letter || "Draft not available."}
                     </div>
                   ) : (
                     <div className="whitespace-pre-wrap text-slate-800 font-urdu text-xl leading-loose text-right" dir="rtl">
-                      {result.drafts?.urdu_draft || "ڈرافٹ دستیاب نہیں ہے۔"}
+                      {result.urdu_letter || "ڈرافٹ دستیاب نہیں ہے۔"}
                     </div>
                   )}
                 </div>
 
+                {/* Next Steps */}
+                {result.next_steps_english?.length > 0 && (
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="font-bold text-[#1B4332] mb-2">Next Steps</h3>
+                      <ol className="space-y-1">
+                        {result.next_steps_english.map((step, i) => (
+                          <li key={i} className="text-sm text-slate-600 flex gap-2">
+                            <span className="font-bold text-[#1B4332] shrink-0">{i + 1}.</span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                    {result.next_steps_urdu?.length > 0 && (
+                      <div dir="rtl">
+                        <h3 className="font-bold text-[#1B4332] mb-2 font-urdu">اگلے اقدامات</h3>
+                        <ol className="space-y-1">
+                          {result.next_steps_urdu.map((step, i) => (
+                            <li key={i} className="text-sm text-slate-600 flex gap-2 font-urdu">
+                              <span className="font-bold text-[#1B4332] shrink-0">{i + 1}.</span>
+                              <span>{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="mt-6 flex justify-end">
-                  <button 
+                  <button
                     className="bg-[#F59E0B] hover:bg-[#D97706] text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2"
                     onClick={() => {
-                      const text = activeTab === "english" ? result.drafts?.english_draft : result.drafts?.urdu_draft;
+                      const text = activeTab === "english" ? result.english_letter : result.urdu_letter;
                       const blob = new Blob([text || ""], { type: "text/plain;charset=utf-8" });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement("a");
                       a.href = url;
                       a.download = `Complaint_${result.reference_number}.txt`;
                       a.click();
+                      URL.revokeObjectURL(url);
                     }}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>

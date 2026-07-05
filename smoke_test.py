@@ -37,10 +37,10 @@ def run_tests(base_url: str):
     }
     
     try:
-        complaint_resp = requests.post(f"{base_url}/api/complaint", json=payload, timeout=60)
+        complaint_resp = requests.post(f"{base_url}/api/complaint", json=payload, timeout=120)
         
         if complaint_resp.status_code == 429:
-            print("⚠️ API returned 429 RESOURCE_EXHAUSTED. The Gemini quota limit was hit.")
+            print("⚠️ API returned 429 RESOURCE_EXHAUSTED. The Groq quota limit was hit.")
             print("   (This means the infrastructure is wired up correctly, but the AI key is maxed out).")
             sys.exit(0)
             
@@ -48,15 +48,21 @@ def run_tests(base_url: str):
         
         complaint_data = complaint_resp.json()
         
-        # Verify JSON shape
-        assert "complaint_type" in complaint_data, "Missing 'complaint_type'"
-        assert "responsible_body_short" in complaint_data, "Missing 'responsible_body_short'"
-        assert "urgency" in complaint_data, "Missing 'urgency'"
-        assert "drafts" in complaint_data, "Missing 'drafts'"
+        # Verify JSON shape — matches DrafterResult schema from agents/drafter.py
+        assert "reference_number" in complaint_data, "Missing 'reference_number'"
+        assert "english_letter" in complaint_data, "Missing 'english_letter'"
+        assert "urdu_letter" in complaint_data, "Missing 'urdu_letter'"
+        assert "submission_method" in complaint_data, "Missing 'submission_method'"
+        assert complaint_data["submission_method"] in ("online", "physical", "both", "phone"), \
+            f"Invalid submission_method: {complaint_data['submission_method']}"
+        assert len(complaint_data["english_letter"]) > 50, "English letter seems too short"
+        assert len(complaint_data["urdu_letter"]) > 20, "Urdu letter seems too short"
         
-        print("✅ Inference endpoint passed. Valid JSON returned.")
-        print(f"   Routed To: {complaint_data['responsible_body_short']}")
-        print(f"   Urgency:   {complaint_data['urgency']}")
+        print("✅ Inference endpoint passed. Valid DrafterResult JSON returned.")
+        print(f"   Reference No:    {complaint_data['reference_number']}")
+        print(f"   Submit Via:      {complaint_data['submission_method']}")
+        if complaint_data.get("helpline_to_call"):
+            print(f"   Helpline:        {complaint_data['helpline_to_call']}")
         print("\nSmoke Tests Completed Successfully! 🎉")
         
     except AssertionError as ae:

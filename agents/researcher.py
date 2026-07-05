@@ -26,6 +26,7 @@ from dotenv import load_dotenv
 from google.adk.agents import LlmAgent
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
+from google.genai import types as genai_types
 from pydantic import BaseModel, Field
 
 # Try to import Google Search tool. If ADK has a specific wrapper, we use it,

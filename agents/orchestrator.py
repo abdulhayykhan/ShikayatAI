@@ -95,8 +95,10 @@ def run_safety_precheck(complaint_text: str) -> dict:
             return {"safe": False, "reason": reason}
         return {"safe": True}
     except Exception as e:
-        # If parsing fails, default to safe to not block the user incorrectly
-        return {"safe": True}
+        # If parsing fails, default to REJECT — fail closed, not open.
+        import logging
+        logging.getLogger("ShikayatAI").error(f"Safety pre-check parse error: {e}. Raw: {repr(raw)}")
+        return {"safe": False, "reason": "Safety check could not be completed. Please rephrase your complaint and try again.\n\n(حفاظتی جانچ مکمل نہیں ہو سکی۔ براہ کرم اپنی شکایت دوبارہ لکھیں۔)"}
 
 
 # ─────────────────────────────────────────────

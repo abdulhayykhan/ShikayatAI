@@ -79,15 +79,18 @@ def mark_complaint_resolved(reference_number: str, tool_context: ToolContext) ->
     success = memory_service.update_status(user_id, reference_number, "resolved")
     return "Status updated to resolved." if success else "Complaint not found."
 
-def set_memory_agent_output(output_action: Literal["proceed", "warn", "summarize", "resolved"], message: str) -> str:
+def set_memory_agent_output(output_action: Literal["proceed", "warn", "summarize", "resolved"], message: str, tool_context: ToolContext) -> str:
     """
     Saves the memory agent's final decision to the session state so the orchestrator knows what to do.
     """
     import json
-    return json.dumps({
+    payload = {
         "action": output_action,
         "message": message
-    })
+    }
+    # Persist to session state so orchestrator and api/main.py can read it
+    tool_context.state["memory_output"] = payload
+    return json.dumps(payload)
 
 SYSTEM_INSTRUCTION = """\
 You are the MemoryAgent for ShikayatAI, handling complaints for Karachi residents.
