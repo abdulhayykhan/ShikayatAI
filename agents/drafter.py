@@ -73,8 +73,9 @@ Your job is to draft formal complaint letters in both English and Urdu, and to d
 REQUIRED ACTIONS:
 You MUST use the code execution tool (Python) to:
 1. Generate a reference number format: REF-[YEAR]-[8 random digits]
-2. Get today's date formatted as "Month DD, YYYY" (e.g. "June 20, 2026")
-3. Get today's date formatted in Urdu (e.g. "20 جون 2026")
+2. Get today's date formatted as "Month DD, YYYY" for the "Asia/Karachi" timezone (e.g. use datetime.now(ZoneInfo("Asia/Karachi")) from zoneinfo module)
+3. Get today's date formatted in Urdu for the "Asia/Karachi" timezone (e.g. "20 جون 2026")
+
 
 You must use these dynamically generated values in your letters.
 

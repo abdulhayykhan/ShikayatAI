@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import textwrap
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 def format_english_letter(
@@ -37,7 +38,7 @@ def format_english_letter(
     Returns:
         A fully formatted English complaint letter as a string.
     """
-    date_str = datetime.now().strftime("%B %d, %Y")
+    date_str = datetime.now(ZoneInfo("Asia/Karachi")).strftime("%B %d, %Y")
     letter = f"""\
 Reference No: {reference_number}
 Date: {date_str}
@@ -88,7 +89,7 @@ def format_urdu_letter(
     Returns:
         A fully formatted Urdu complaint letter as a string.
     """
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("Asia/Karachi"))
     urdu_months = [
         "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
         "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"

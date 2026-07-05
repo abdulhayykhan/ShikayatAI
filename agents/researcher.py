@@ -103,7 +103,7 @@ If search returns nothing useful, return nulls/empty lists but DO NOT hallucinat
 
 KNOWN RELIABLE FALLBACKS (Use these ONLY if search fails or to supplement missing data):
 - K-Electric: Helpline 118, website: kesc.com.pk (now ke.com.pk)
-- KWSB (Karachi Water & Sewerage Board): Helpline 1309, no reliable online portal
+- KW&SC (Karachi Water & Sewerage Corporation, formerly KWSB): Helpline 1334 or 021-111-597-200. WhatsApp: 0319-2046357. No reliable online portal.
 - SSGC (Sui Southern Gas Company): Helpline 1199
 - KMC (Karachi Metropolitan Corporation): Phone 021-99251600
 
