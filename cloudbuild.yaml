@@ -24,7 +24,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--update-secrets=GOOGLE_API_KEY=shikayatai-google-api-key:latest'
+      - '--update-secrets=GROQ_API_KEY=shikayatai-groq-api-key:latest'
 
   # ============================================================================
   # 2. FRONTEND (Next.js App)
