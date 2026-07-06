@@ -202,15 +202,22 @@ async def submit_complaint(req: ComplaintRequest):
     
     except Exception as e:
         logger.error(f"ADK Execution Error: {e}")
-        if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
+        error_str = str(e).lower()
+        if "429" in error_str or "resource_exhausted" in error_str or "rate limit" in error_str:
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={
-                    "error_english": "AI Quota limit exceeded. Please try again tomorrow.",
-                    "error_urdu": "آرٹیفیشل انٹیلیجنس کی روزانہ کی حد پوری ہو گئی ہے۔ براہ کرم کل کوشش کریں۔"
+                    "error_english": "AI Quota limit exceeded. Please try again later.",
+                    "error_urdu": "آرٹیفیشل انٹیلیجنس کی روزانہ کی حد پوری ہو گئی ہے۔ براہ کرم کچھ دیر بعد دوبارہ کوشش کریں۔"
                 }
             )
-        raise e
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "error_english": f"Pipeline Error: {str(e)}",
+                "error_urdu": "سرور میں کوئی اندرونی خامی پیش آ گئی ہے۔"
+            }
+        )
 
     # Parse final JSON output from Drafter
     try:

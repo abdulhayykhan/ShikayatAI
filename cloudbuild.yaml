@@ -24,6 +24,10 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--memory'
+      - '1024Mi'
+      - '--timeout'
+      - '600s'
       - '--update-secrets=GROQ_API_KEY=shikayatai-groq-api-key:latest'
 
   # ============================================================================
