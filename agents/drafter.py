@@ -66,23 +66,18 @@ class DrafterResult(BaseModel):
 # ─────────────────────────────────────────────
 SYSTEM_INSTRUCTION = """\
 You are the DrafterAgent for ShikayatAI, a civic complaint routing system for Karachi, Pakistan.
-You will be provided with a JSON string containing the combined outputs of the ClassifierAgent and ResearcherAgent.
+You will be provided with a JSON string containing the combined outputs of the ClassifierAgent and ResearcherAgent, along with a pre-generated Reference Number and today's Dates.
 
 Your job is to draft formal complaint letters in both English and Urdu, and to determine the best next steps for the user based on the available contact information.
 
 REQUIRED ACTIONS:
-You MUST use the code execution tool (Python) to:
-1. Generate a reference number format: REF-[YEAR]-[8 random digits]
-2. Get today's date formatted as "Month DD, YYYY" for the "Asia/Karachi" timezone (e.g. use datetime.now(ZoneInfo("Asia/Karachi")) from zoneinfo module)
-3. Get today's date formatted in Urdu for the "Asia/Karachi" timezone (e.g. "20 جون 2026")
-
-
-You must use these dynamically generated values in your letters.
+1. You MUST use the exact Reference Number provided in the prompt.
+2. You MUST use the exact English and Urdu dates provided in the prompt.
 
 ENGLISH LETTER FORMAT (Formal):
 ---
-Reference No: [Generated Reference Number]
-Date: [Generated English Date]
+Reference No: [Provided Reference Number]
+Date: [Provided English Date]
 
 The [Authority Full Name],
 [Physical Address]
@@ -108,8 +103,8 @@ Address: ____________
 
 URDU LETTER FORMAT (درخواست style):
 ---
-حوالہ نمبر: [Generated Reference Number]
-تاریخ: [Generated Urdu Date]
+حوالہ نمبر: [Provided Reference Number]
+تاریخ: [Provided Urdu Date]
 
 جناب [Authority Full Name in Urdu],
 [Physical Address]
@@ -151,31 +146,8 @@ from google.adk.models.lite_llm import LiteLlm
 _MODEL = LiteLlm(model="groq/llama-3.3-70b-versatile")
 
 _AGENT_DESCRIPTION = (
-    "Drafts formal civic complaint letters in English and Urdu, generating "
-    "dynamic dates and reference numbers via code execution."
+    "Drafts formal civic complaint letters in English and Urdu using provided data."
 )
-
-def built_in_code_execution(python_code: str) -> str:
-    """
-    Executes the provided Python code and returns the printed stdout.
-    Use this to generate reference numbers, calculate dates, etc.
-    Make sure to use print() to output the final result.
-    """
-    import io
-    import sys
-    
-    old_stdout = sys.stdout
-    sys.stdout = io.StringIO()
-    try:
-        # Provide a basic safe globals dict
-        exec(python_code, {"__builtins__": __builtins__})
-        output = sys.stdout.getvalue()
-    except Exception as e:
-        output = f"Execution Error: {str(e)}"
-    finally:
-        sys.stdout = old_stdout
-    
-    return output.strip()
 
 def _make_agent() -> LlmAgent:
     """Return a fresh LlmAgent instance."""
@@ -184,7 +156,6 @@ def _make_agent() -> LlmAgent:
         model=_MODEL,
         description=_AGENT_DESCRIPTION,
         instruction=SYSTEM_INSTRUCTION,
-        tools=[built_in_code_execution],
     )
 
 # ─────────────────────────────────────────────
@@ -227,7 +198,19 @@ async def _run_with_key(
         app_name=APP_NAME,
     )
 
-    user_prompt = f"Here is the combined classifier and researcher output:\n{json.dumps(combined_input, indent=2)}\n\nPlease generate the letters and return the JSON."
+    import random
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    now = datetime.now(ZoneInfo("Asia/Karachi"))
+    ref_num = f"REF-{now.year}-{random.randint(10000000, 99999999)}"
+    date_en = now.strftime("%B %d, %Y")
+    urdu_months = [
+        "جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون",
+        "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"
+    ]
+    date_ur = f"{now.day} {urdu_months[now.month - 1]} {now.year}"
+
+    user_prompt = f"Here is the combined classifier and researcher output:\n{json.dumps(combined_input, indent=2)}\n\nPRE-GENERATED DATA:\nReference Number: {ref_num}\nDate (English): {date_en}\nDate (Urdu): {date_ur}\n\nPlease generate the letters and return the JSON."
 
     message = genai_types.Content(
         role="user",
