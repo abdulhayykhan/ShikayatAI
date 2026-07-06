@@ -41,7 +41,7 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 
 ### 🧠 Multi-Agent AI Pipeline
 - Built using the **Google Agent Development Kit (ADK)** and `SequentialAgent` orchestration.
-- Four distinct, specialized agents work in tandem: **Memory**, **Classifier**, **Researcher**, and **Drafter**.
+- Three distinct, specialized agents work in tandem: **Classifier**, **Researcher**, and **Drafter**.
 
 ### 🛡️ Safety & Content Moderation Pre-check
 - Intercepts and rejects medical emergencies, active crimes, political rants, or gibberish.
@@ -55,12 +55,9 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 - Executes real-time Google Searches via tool calling to scrape up-to-date official complaint portals, helplines, and physical addresses of the determined authority.
 
 ### 📝 Bilingual Formal Drafting
-- Dynamically executes Python code to generate unique tracking reference numbers (`REF-2026-XXXXXXXX`) and localized timestamps.
+- Uses dynamically generated unique tracking reference numbers (`REF-[YEAR]-[ID]`) and localized timestamps.
 - Generates highly formal, ready-to-print official complaint letters in both English and Urdu (Nastaliq).
 
-### 💾 Local History & Memory
-- Detects duplicate submissions to prevent spamming authorities.
-- Tracks past complaints in browser `localStorage` and maintains status resolution flows.
 
 ---
 
@@ -91,10 +88,10 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 │   │  1. Safety Pre-check (Groq Llama 3.3)                          │   │
 │   │     If safe, triggers Sequential Pipeline:                     │   │
 │   │                                                                │   │
-│   │  ┌──────────┐   ┌────────────┐   ┌────────────┐   ┌──────────┐ │   │
-│   │  │ Memory   ├──►│ Classifier ├──►│ Researcher ├──►│ Drafter  │ │   │
-│   │  │ Agent    │   │ Agent      │   │ Agent      │   │ Agent    │ │   │
-│   │  └──────────┘   └────────────┘   └─┬──────────┘   └──────────┘ │   │
+│   │  ┌────────────┐   ┌────────────┐   ┌──────────┐                │   │
+│   │  │ Classifier ├──►│ Researcher ├──►│ Drafter  │                │   │
+│   │  │ Agent      │   │ Agent      │   │ Agent    │                │   │
+│   │  └────────────┘   └─┬──────────┘   └──────────┘                │   │
 │   └────────────────────────────────────┼───────────────────────────┘   │
 └────────────────────────────────────────┼───────────────────────────────┘
 ```
@@ -136,17 +133,14 @@ Instead of citizens navigating complex bureaucracy or figuring out which departm
 
 ## ⚙️ How It Works
 
-### 1. Memory Agent
-Before processing, checks the internal memory service (mapping `user_id` to past complaints). If a user submits a nearly identical complaint that is still pending, it warns them to prevent duplicate tickets.
-
-### 2. Classifier Agent
+### 1. Classifier Agent
 Extracts the core issue, assigns the responsible administrative body in Karachi, sets urgency, and returns structured JSON outlining the problem in English and Urdu.
 
-### 3. Researcher Agent
+### 2. Researcher Agent
 Receives the target authority (e.g., "KWSB"). Uses a live Google Search tool to find the exact, current complaint portal URL, helpline numbers, and physical address for that authority.
 
-### 4. Drafter Agent
-Uses a secure Python code execution tool to generate a unique `REF` number and localized date. It then writes a highly formal, persuasive letter in English, and a perfectly localized Urdu letter requesting immediate action from the authority.
+### 3. Drafter Agent
+Uses pre-generated dynamic `REF` numbers and localized dates to write a highly formal, persuasive letter in English, and a perfectly localized Urdu letter requesting immediate action from the authority.
 
 ---
 
@@ -159,8 +153,7 @@ ShikayatAI/
 │   ├── orchestrator.py           Pipeline manager & Safety Pre-check
 │   ├── classifier.py             Categorization agent
 │   ├── researcher.py             Live web search agent
-│   ├── drafter.py                Letter generation agent (Python tool)
-│   └── memory_agent.py           User session history management
+│   └── drafter.py                Letter generation agent
 │
 ├── api/                          Backend Server
 │   └── main.py                   FastAPI endpoints & CORS config
@@ -254,7 +247,7 @@ Main inference endpoint. Runs safety check and orchestrator pipeline.
 {
   "status": "ok",
   "model": "groq/llama-3.3-70b-versatile",
-  "agents": ["Classifier", "Researcher", "Drafter", "Memory"]
+  "agents": ["Classifier", "Researcher", "Drafter"]
 }
 ```
 
