@@ -8,6 +8,7 @@ Exposes the ADK Orchestrator pipeline to the Next.js frontend.
 import asyncio
 import json
 import logging
+import sqlite3
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -47,6 +48,15 @@ class ComplaintRequest(BaseModel):
 async def lifespan(app: FastAPI):
     # Startup: preload models if needed
     logger.info("ShikayatAI Backend Server Starting...")
+    
+    # Initialize SQLite database
+    try:
+        with sqlite3.connect("complaints.db") as conn:
+            conn.execute('''CREATE TABLE IF NOT EXISTS complaints
+                            (ref_num TEXT PRIMARY KEY, data TEXT)''')
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite DB: {e}")
+
     yield
     # Shutdown
     logger.info("ShikayatAI Backend Server Shutting down...")
@@ -236,6 +246,14 @@ async def submit_complaint(req: ComplaintRequest):
         if "urdu_letter" in parsed:
             parsed["urdu_letter"] = parsed["urdu_letter"].replace("{{REF_NUM}}", ref_num).replace("{{DATE_UR}}", date_ur)
 
+        # Save to database
+        try:
+            with sqlite3.connect("complaints.db") as conn:
+                conn.execute("INSERT OR REPLACE INTO complaints (ref_num, data) VALUES (?, ?)", 
+                             (ref_num, json.dumps(parsed)))
+        except Exception as db_err:
+            logger.error(f"Failed to save complaint to DB: {db_err}")
+
         logger.info(f"[LOG] Complaint successfully routed and drafted for user {req.user_id}")
         return parsed
     except Exception as e:
@@ -245,6 +263,33 @@ async def submit_complaint(req: ComplaintRequest):
             content={
                 "error_english": "The AI produced an invalid response format. Please try again.",
                 "error_urdu": "اے آئی کے جواب میں کچھ خرابی تھی۔ براہ کرم دوبارہ کوشش کریں۔"
+            }
+        )
+
+@app.get("/api/complaint/{reference_number}")
+async def get_complaint(reference_number: str):
+    """Fetch an existing complaint by tracking number."""
+    try:
+        with sqlite3.connect("complaints.db") as conn:
+            cursor = conn.execute("SELECT data FROM complaints WHERE ref_num = ?", (reference_number,))
+            row = cursor.fetchone()
+            if row:
+                return json.loads(row[0])
+            else:
+                return JSONResponse(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    content={
+                        "error_english": "Complaint not found. Please check your tracking number.",
+                        "error_urdu": "شکایت نہیں ملی۔ براہ کرم اپنا ٹریکنگ نمبر چیک کریں۔"
+                    }
+                )
+    except Exception as e:
+        logger.error(f"Database error on fetch: {e}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "error_english": "Failed to retrieve complaint due to an internal error.",
+                "error_urdu": "اندرونی خرابی کی وجہ سے شکایت حاصل کرنے میں ناکامی۔"
             }
         )
 

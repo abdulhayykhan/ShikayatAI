@@ -24,6 +24,9 @@ export default function Home() {
   const [error, setError] = useState<{ english: string; urdu: string } | null>(null);
   const [activeTab, setActiveTab] = useState<"urdu" | "english">("urdu");
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [isTracking, setIsTracking] = useState(false);
 
   const [userId, setUserId] = useState("");
 
@@ -79,6 +82,44 @@ export default function Home() {
     }
   };
 
+  const handleTrack = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trackingNumber) return;
+
+    setIsTracking(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${baseUrl}/api/complaint/${trackingNumber}`);
+
+      let data;
+      const responseText = await response.text();
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Server returned non-JSON response (${response.status}): ` + responseText.substring(0, 100));
+      }
+
+      if (!response.ok) {
+        setError({
+          english: data.error_english || "Complaint not found.",
+          urdu: data.error_urdu || "شکایت نہیں ملی۔"
+        });
+      } else {
+        setResult(data as ShikayatResult);
+      }
+    } catch (err) {
+      setError({
+        english: err instanceof Error ? err.message : "Failed to connect to the server.",
+        urdu: "سرور سے رابطہ کرنے میں ناکامی۔"
+      });
+    } finally {
+      setIsTracking(false);
+    }
+  };
+
   const getMethodBadge = (method: string) => {
     switch (method) {
       case "online": return "bg-blue-100 text-blue-800 border-blue-200";
@@ -104,6 +145,29 @@ export default function Home() {
 
         {/* Left Column: Form & History */}
         <div className="lg:col-span-1 space-y-8">
+
+          {/* Track Complaint Form */}
+          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
+            <h2 className="text-xl font-bold text-[#1B4332] mb-4 border-b pb-2">Track Complaint</h2>
+            <form onSubmit={handleTrack} className="flex gap-2">
+              <input
+                type="text"
+                className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] outline-none transition"
+                placeholder="Reference No. (e.g. KF-2026...)"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value.trim())}
+                disabled={isTracking || isLoading}
+                required
+              />
+              <button
+                type="submit"
+                disabled={isTracking || isLoading || !trackingNumber}
+                className="bg-[#1B4332] hover:bg-[#123023] text-white font-bold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap flex items-center"
+              >
+                {isTracking ? "..." : "Track"}
+              </button>
+            </form>
+          </div>
 
           {/* Complaint Form */}
           <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
