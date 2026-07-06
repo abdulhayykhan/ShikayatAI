@@ -209,14 +209,43 @@ async def submit_complaint(req: ComplaintRequest):
         last_brace = text.rfind("}")
         if first_brace == -1 or last_brace == -1 or last_brace < first_brace:
             logger.error(f"No JSON object found in Drafter output. Raw output: {repr(final_output)}")
-            raise HTTPException(status_code=500, detail="Failed to parse model output.")
+            return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={
+                    "error_english": "The AI failed to format the response correctly. Please try again.",
+                    "error_urdu": "اے آئی نے جواب درست فارمیٹ میں نہیں دیا۔ براہ کرم دوبارہ کوشش کریں۔"
+                }
+            )
         
         json_str = text[first_brace:last_brace + 1]
         parsed = json.loads(json_str)
+        
+        # Inject Date and Reference Number
+        import random
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        now = datetime.now(ZoneInfo("Asia/Karachi"))
+        ref_num = f"KF-{now.year}{now.month:02d}{now.day:02d}-{random.randint(100, 999)}"
+        date_en = now.strftime("%B %d, %Y")
+        urdu_months = ["جنوری", "فروری", "مارچ", "اپریل", "مئی", "جون", "جولائی", "اگست", "ستمبر", "اکتوبر", "نومبر", "دسمبر"]
+        date_ur = f"{now.day} {urdu_months[now.month - 1]} {now.year}"
+
+        parsed["reference_number"] = ref_num
+        if "english_letter" in parsed:
+            parsed["english_letter"] = parsed["english_letter"].replace("{{REF_NUM}}", ref_num).replace("{{DATE_EN}}", date_en)
+        if "urdu_letter" in parsed:
+            parsed["urdu_letter"] = parsed["urdu_letter"].replace("{{REF_NUM}}", ref_num).replace("{{DATE_UR}}", date_ur)
+
         logger.info(f"[LOG] Complaint successfully routed and drafted for user {req.user_id}")
         return parsed
     except Exception as e:
         logger.error(f"Failed to parse Drafter JSON output. Raw output: {repr(final_output)}. Error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to parse model output.")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "error_english": "The AI produced an invalid response format. Please try again.",
+                "error_urdu": "اے آئی کے جواب میں کچھ خرابی تھی۔ براہ کرم دوبارہ کوشش کریں۔"
+            }
+        )
 
 

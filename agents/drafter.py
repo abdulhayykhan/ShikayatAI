@@ -71,13 +71,13 @@ You will be provided with a JSON string containing the combined outputs of the C
 Your job is to draft formal complaint letters in both English and Urdu, and to determine the best next steps for the user based on the available contact information.
 
 REQUIRED ACTIONS:
-1. You MUST use the exact Reference Number provided in the prompt.
-2. You MUST use the exact English and Urdu dates provided in the prompt.
+1. You MUST use EXACTLY the literal string `{{REF_NUM}}` for the Reference Number. Do NOT generate a reference number.
+2. You MUST use EXACTLY the literal strings `{{DATE_EN}}` and `{{DATE_UR}}` for the dates. Do NOT generate real dates.
 
 ENGLISH LETTER FORMAT (Formal):
 ---
-Reference No: [Provided Reference Number]
-Date: [Provided English Date]
+Reference No: {{REF_NUM}}
+Date: {{DATE_EN}}
 
 The [Authority Full Name],
 [Physical Address]
@@ -103,8 +103,8 @@ Address: ____________
 
 URDU LETTER FORMAT (درخواست style):
 ---
-حوالہ نمبر: [Provided Reference Number]
-تاریخ: [Provided Urdu Date]
+حوالہ نمبر: {{REF_NUM}}
+تاریخ: {{DATE_UR}}
 
 جناب [Authority Full Name in Urdu],
 [Physical Address]
@@ -136,6 +136,11 @@ Always output ONLY valid JSON matching this exact schema (do NOT wrap in markdow
 "helpline_to_call": "string or null"
 "next_steps_english": ["string"]
 "next_steps_urdu": ["string"]
+
+CRITICAL JSON RULES:
+1. ALL newlines inside strings MUST be escaped as `\\n`. Do NOT output literal raw newlines inside the JSON values!
+2. Do NOT include trailing commas.
+3. Your output must be parsable by `json.loads()`.
 """
 
 # ─────────────────────────────────────────────
