@@ -23,6 +23,7 @@ export default function Home() {
   const [result, setResult] = useState<ShikayatResult | null>(null);
   const [error, setError] = useState<{ english: string; urdu: string } | null>(null);
   const [activeTab, setActiveTab] = useState<"urdu" | "english">("urdu");
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   const [userId, setUserId] = useState("");
 
@@ -320,6 +321,46 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Floating Button */}
+      <button
+        onClick={() => setShowHowItWorks(true)}
+        className="fixed bottom-6 left-6 bg-[#1B4332] hover:bg-[#123023] text-white p-4 rounded-full shadow-xl transition-transform hover:scale-110 flex items-center justify-center z-50 group"
+        title="How it works / یہ کیسے کام کرتا ہے"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </button>
+
+      {/* How it works Modal */}
+      {showHowItWorks && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200" onClick={() => setShowHowItWorks(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative" onClick={e => e.stopPropagation()}>
+            <button 
+              onClick={() => setShowHowItWorks(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-1 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h2 className="text-2xl font-bold text-[#1B4332] mb-4 border-b pb-2">How it works</h2>
+            
+            <div className="space-y-4 text-slate-700">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <p className="mb-2"><strong>1. Describe your issue</strong><br/>Tell us your civic problem in plain Urdu, Roman Urdu, or English.</p>
+                <p className="mb-2"><strong>2. AI Analysis</strong><br/>Our AI identifies the correct government department (like KWSB or KE) and finds their official contact info.</p>
+                <p><strong>3. Get your letter</strong><br/>We instantly draft a formal, ready-to-submit complaint letter in both English and Urdu.</p>
+              </div>
+
+              <div className="bg-[#1B4332]/5 p-4 rounded-xl border border-[#1B4332]/10 text-right font-urdu leading-loose" dir="rtl">
+                <h2 className="text-xl font-bold text-[#1B4332] mb-3">یہ کیسے کام کرتا ہے</h2>
+                <p className="mb-2"><strong>1. اپنا مسئلہ بتائیں:</strong><br/>اپنا شہری مسئلہ سادہ اردو، رومن اردو یا انگریزی میں لکھیں۔</p>
+                <p className="mb-2"><strong>2. اے آئی کا تجزیہ:</strong><br/>ہمارا AI متعلقہ سرکاری محکمے (جیسے KWSB یا KE) کی نشاندہی کرتا ہے اور ان کی رابطے کی تفصیلات تلاش کرتا ہے۔</p>
+                <p><strong>3. اپنی درخواست حاصل کریں:</strong><br/>ہم فوری طور پر انگریزی اور اردو دونوں زبانوں میں ایک باضابطہ شکایت کا مسودہ تیار کرتے ہیں۔</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
