@@ -21,7 +21,7 @@
 
 ## 🏙️ What is ShikayatAI?
 
-ShikayatAI is a **bilingual (Urdu & English) civic complaint resolution platform** engineered specifically for the citizens of Karachi, Pakistan. It leverages a multi-agent AI pipeline built on Google's ADK and the Groq Llama 3.3 70B model to instantly categorize, route, and draft formal civic complaints based on natural language input.
+ShikayatAI is a **bilingual (Urdu & English) civic complaint resolution platform** engineered specifically for the citizens of Karachi, Pakistan. Built for the **Google x Kaggle AI Agents: Intensive Vibe Coding Capstone Project**, it leverages a multi-agent AI pipeline built on Google's ADK and the Groq Llama 3.3 70B model to instantly categorize, route, and draft formal civic complaints based on natural language input.
 
 Instead of citizens navigating complex bureaucracy or figuring out which department handles their specific issue (e.g., KWSB for water, KE for electricity, SSMB for garbage), ShikayatAI acts as a single intelligent portal. A user simply types their problem in plain Urdu, Roman Urdu, or English. The AI pipeline runs a safety pre-check, dynamically researches live contact info for the correct authority via Google Search, and drafts formal, reference-tracked complaint letters in both languages, ready for submission.
 
