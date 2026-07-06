@@ -228,7 +228,7 @@ async def submit_complaint(req: ComplaintRequest):
             )
         
         json_str = text[first_brace:last_brace + 1]
-        parsed = json.loads(json_str)
+        parsed = json.loads(json_str, strict=False)
         
         # Inject Date and Reference Number
         import random
