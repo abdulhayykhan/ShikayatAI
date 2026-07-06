@@ -16,14 +16,6 @@ interface ShikayatResult {
   next_steps_urdu: string[];
 }
 
-interface PastComplaint {
-  id: string;
-  reference_number: string;
-  date: string;
-  submission_method: string;
-  helpline: string | null;
-}
-
 export default function Home() {
   const [complaint, setComplaint] = useState("");
   const [location, setLocation] = useState("");
@@ -31,10 +23,10 @@ export default function Home() {
   const [result, setResult] = useState<ShikayatResult | null>(null);
   const [error, setError] = useState<{ english: string; urdu: string } | null>(null);
   const [activeTab, setActiveTab] = useState<"urdu" | "english">("urdu");
-  const [pastComplaints, setPastComplaints] = useState<PastComplaint[]>([]);
+
   const [userId, setUserId] = useState("");
 
-  // Initialize User ID and load history
+  // Initialize User ID
   useEffect(() => {
     let storedUserId = localStorage.getItem("shikayat_user_id");
     if (!storedUserId) {
@@ -42,38 +34,7 @@ export default function Home() {
       localStorage.setItem("shikayat_user_id", storedUserId);
     }
     setUserId(storedUserId);
-
-    // Fix 6: Guard against corrupted localStorage JSON
-    const history = localStorage.getItem("shikayat_history");
-    if (history) {
-      try {
-        setPastComplaints(JSON.parse(history));
-      } catch {
-        // Corrupted data — clear and start fresh
-        localStorage.removeItem("shikayat_history");
-      }
-    }
   }, []);
-
-  const saveToHistory = (newResult: ShikayatResult) => {
-    if (!newResult.reference_number) return;
-
-    const newEntry: PastComplaint = {
-      id: Date.now().toString(),
-      reference_number: newResult.reference_number,
-      date: new Date().toLocaleDateString(),
-      submission_method: newResult.submission_method,
-      helpline: newResult.helpline_to_call,
-    };
-
-    const updated = [newEntry, ...pastComplaints];
-    setPastComplaints(updated);
-    try {
-      localStorage.setItem("shikayat_history", JSON.stringify(updated));
-    } catch {
-      // localStorage write failed (e.g. private mode quota) — silently ignore
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +67,6 @@ export default function Home() {
         });
       } else {
         setResult(data as ShikayatResult);
-        saveToHistory(data as ShikayatResult);
       }
     } catch (err) {
       setError({
@@ -194,28 +154,7 @@ export default function Home() {
             </form>
           </div>
 
-          {/* Past Complaints */}
-          {pastComplaints.length > 0 && (
-            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
-              <h2 className="text-xl font-bold text-[#1B4332] mb-4 border-b pb-2">Past Complaints</h2>
-              <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-                {pastComplaints.map(pc => (
-                  <div key={pc.id} className="p-3 bg-slate-50 border border-slate-100 rounded-lg">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-mono text-xs font-bold text-[#1B4332]">{pc.reference_number}</span>
-                      <span className="text-xs text-slate-500">{pc.date}</span>
-                    </div>
-                    <span className="inline-block px-2 py-0.5 bg-slate-200 text-slate-700 text-xs rounded-full font-bold mb-1">
-                      {pc.submission_method}
-                    </span>
-                    {pc.helpline && (
-                      <p className="text-xs text-slate-500">Helpline: {pc.helpline}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Right Column: Results */}
