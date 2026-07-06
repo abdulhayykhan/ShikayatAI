@@ -5,7 +5,7 @@ ShikayatAI – Orchestrator Agent
 
 Supervisor that strings the civic complaint pipeline together.
 Runs a safety pre-check before routing through:
-  Memory -> Classifier -> Researcher -> Drafter
+  Classifier -> Researcher -> Drafter
 """
 
 import asyncio
@@ -23,7 +23,7 @@ from google.genai import Client, types
 # Ensure we import the factory functions for the sub-agents
 # Note: we need to adapt the signatures or wrap them if they don't exactly match the simple ADK signature,
 # but for ADK SequentialAgent, you just pass the agent instances.
-from agents.memory_agent import make_memory_agent
+
 from agents.classifier import _make_agent as make_classifier_agent
 from agents.researcher import _make_agent as make_researcher_agent
 from agents.drafter import _make_agent as make_drafter_agent
@@ -111,7 +111,6 @@ def make_orchestrator() -> SequentialAgent:
         name="ShikayatAI_Orchestrator",
         description="Routes Karachi civic complaints to correct authority and generates formal complaint letters in Urdu and English",
         sub_agents=[
-            make_memory_agent(),
             make_classifier_agent(),
             make_researcher_agent(),
             make_drafter_agent()
@@ -185,11 +184,7 @@ async def process_complaint(user_text: str):
         print("Final Agent Output:\n")
         print(final_output)
 
-        # Let's also print the memory agent's decision from state
-        session = await session_service.get_session("ShikayatAI", user_id, session_id)
-        if session and "memory_output" in session.state:
-            print("\n[MEMORY AGENT DECISION]:")
-            print(session.state["memory_output"])
+
             
     except Exception as e:
         print(f"\n[PIPELINE FAILED]: {e}")

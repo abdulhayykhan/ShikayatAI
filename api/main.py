@@ -23,7 +23,6 @@ from google.genai import types
 
 # Import our custom ADK tools and agents
 from agents.orchestrator import make_orchestrator, run_safety_precheck
-from agents.memory_agent import memory_service
 
 # ─────────────────────────────────────────────
 # Set up logging (avoiding raw input texts)
@@ -39,10 +38,7 @@ class ComplaintRequest(BaseModel):
     user_id: str = Field(..., description="Unique ID for local storage session tracking")
     location: str | None = Field(None, description="Optional location field")
 
-class FeedbackRequest(BaseModel):
-    reference_number: str
-    resolved: bool
-    user_id: str
+
 
 # ─────────────────────────────────────────────
 # FastAPI App Initialization
@@ -108,7 +104,7 @@ async def health_check():
     return {
         "status": "ok",
         "model": "groq/llama-3.3-70b-versatile",
-        "agents": ["Classifier", "Researcher", "Drafter", "Memory"]
+        "agents": ["Classifier", "Researcher", "Drafter"]
     }
 
 @app.post("/api/complaint")
@@ -185,20 +181,7 @@ async def submit_complaint(req: ComplaintRequest):
                 if node_name == "Drafter" or author == "Drafter" or "Drafter" in node_name or "Drafter" in author:
                     final_output += event_text
                             
-        # Look for MemoryAgent intercept
-        refreshed_session = await session_service.get_session(app_name="ShikayatAI", user_id=req.user_id, session_id=session_id)
-        if refreshed_session and "memory_output" in refreshed_session.state:
-            mem_out = refreshed_session.state["memory_output"]
-            if mem_out.get("action") == "warn":
-                # Duplicate detected!
-                return JSONResponse(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    content={
-                        "error_english": "Duplicate complaint detected.",
-                        "error_urdu": "پہلے سے درج شدہ شکایت موصول ہوئی۔",
-                        "details": mem_out.get("message")
-                    }
-                )
+
     
     except Exception as e:
         logger.error(f"ADK Execution Error: {e}")
@@ -237,34 +220,3 @@ async def submit_complaint(req: ComplaintRequest):
         raise HTTPException(status_code=500, detail="Failed to parse model output.")
 
 
-@app.get("/api/complaint/{reference_number}")
-async def get_complaint_status(reference_number: str, user_id: str):
-    """Retrieves complaint status from memory agent service."""
-    complaints = memory_service.get_complaints(user_id)
-    for c in complaints:
-        if c.get("reference_number") == reference_number:
-            return c
-            
-    return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
-        content={
-            "error_english": "Complaint not found.",
-            "error_urdu": "شکایت نہیں ملی۔"
-        }
-    )
-
-@app.post("/api/feedback")
-async def update_complaint_feedback(req: FeedbackRequest):
-    """Updates the status of a complaint based on user feedback."""
-    if req.resolved:
-        success = memory_service.update_status(req.user_id, req.reference_number, "resolved")
-        if success:
-            return {"status": "success", "message": "Complaint marked as resolved."}
-            
-    return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
-        content={
-            "error_english": "Failed to update complaint status. Not found.",
-            "error_urdu": "اسٹیٹس اپ ڈیٹ کرنے میں ناکامی۔ شکایت نہیں ملی۔"
-        }
-    )
