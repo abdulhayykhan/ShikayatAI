@@ -242,9 +242,9 @@ async def submit_complaint(req: ComplaintRequest):
 
         parsed["reference_number"] = ref_num
         if "english_letter" in parsed:
-            parsed["english_letter"] = parsed["english_letter"].replace("{{REF_NUM}}", ref_num).replace("{{DATE_EN}}", date_en)
+            parsed["english_letter"] = parsed["english_letter"].replace("[REF_NUM]", ref_num).replace("[DATE_EN]", date_en)
         if "urdu_letter" in parsed:
-            parsed["urdu_letter"] = parsed["urdu_letter"].replace("{{REF_NUM}}", ref_num).replace("{{DATE_UR}}", date_ur)
+            parsed["urdu_letter"] = parsed["urdu_letter"].replace("[REF_NUM]", ref_num).replace("[DATE_UR]", date_ur)
 
         # Save to database
         try:

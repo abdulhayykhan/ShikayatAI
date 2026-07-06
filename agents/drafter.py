@@ -71,13 +71,13 @@ You will be provided with a JSON string containing the combined outputs of the C
 Your job is to draft formal complaint letters in both English and Urdu, and to determine the best next steps for the user based on the available contact information.
 
 REQUIRED ACTIONS:
-1. You MUST use EXACTLY the literal string `{{REF_NUM}}` for the Reference Number. Do NOT generate a reference number.
-2. You MUST use EXACTLY the literal strings `{{DATE_EN}}` and `{{DATE_UR}}` for the dates. Do NOT generate real dates.
+1. You MUST use EXACTLY the literal string `[REF_NUM]` for the Reference Number. Do NOT generate a reference number.
+2. You MUST use EXACTLY the literal strings `[DATE_EN]` and `[DATE_UR]` for the dates. Do NOT generate real dates.
 
 ENGLISH LETTER FORMAT (Formal):
 ---
-Reference No: {{REF_NUM}}
-Date: {{DATE_EN}}
+Reference No: [REF_NUM]
+Date: [DATE_EN]
 
 The [Authority Full Name],
 [Physical Address]
@@ -101,10 +101,10 @@ Contact: ____________
 Address: ____________
 ---
 
-URDU LETTER FORMAT (درخواست style):
+URDU LETTER FORMAT (Formal, Right-to-Left):
 ---
-حوالہ نمبر: {{REF_NUM}}
-تاریخ: {{DATE_UR}}
+حوالہ نمبر: [REF_NUM]
+تاریخ: [DATE_UR]
 
 جناب [Authority Full Name in Urdu],
 [Physical Address]
